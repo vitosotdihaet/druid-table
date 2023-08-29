@@ -22,6 +22,6 @@ impl<'a, F: Fn(&mut Formatter) -> fmt::Result> Debug for DebugFn<'a, F> {
 #[macro_export]
 macro_rules! debug_fn {
     ($content: expr) => {
-        &crate::macros::DebugFn(&$content)
+        &$crate::macros::DebugFn(&$content)
     };
 }

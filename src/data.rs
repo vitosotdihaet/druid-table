@@ -109,7 +109,9 @@ impl Remap {
 }
 
 #[derive(Debug, Data, Clone)]
+#[derive(Default)]
 pub enum Remap {
+    #[default]
     Pristine,
     Selected(RemapDetails),
     Internal, // This indicates that the source data has done the remapping, ie no wrapper required. Eg sort in db.
@@ -125,11 +127,7 @@ impl Remap {
     }
 }
 
-impl Default for Remap {
-    fn default() -> Self {
-        Remap::Pristine
-    }
-}
+
 
 #[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Copy, Data)]
 pub enum SortDirection {
@@ -164,6 +162,7 @@ impl SortSpec {
 }
 
 #[derive(Clone, Debug, Data)]
+#[derive(Default)]
 pub struct RemapSpec {
     pub(crate) sort_by: Vector<SortSpec>, // columns sorted
     // filters
@@ -185,7 +184,7 @@ impl RemapSpec {
 
         match sort_by.last() {
             Some(SortSpec { idx, direction }) if log_idx == *idx => {
-                let dir = direction.clone();
+                let dir = *direction;
                 sort_by.pop_back();
                 if dir == SortDirection::Ascending {
                     sort_by.push_back(SortSpec::new(log_idx, SortDirection::Descending));
@@ -243,14 +242,7 @@ impl RemapSpec {
     }
 }
 
-impl Default for RemapSpec {
-    fn default() -> Self {
-        RemapSpec {
-            sort_by: Vector::default(),
-            placements: HashMap::default(),
-        }
-    }
-}
+
 
 pub trait Remapper<TableData: IndexedData>
 where

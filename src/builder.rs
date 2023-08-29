@@ -12,16 +12,14 @@ use druid::{theme, Data, KeyOrValue};
 use std::marker::PhantomData;
 
 #[derive(Copy, Clone, Debug, Hash, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Default)]
 pub enum AxisMeasurementType {
     Uniform,
+    #[default]
     Individual, /* O(n) in memory with number of items on the axis */
 }
 
-impl Default for AxisMeasurementType {
-    fn default() -> Self {
-        AxisMeasurementType::Individual
-    }
-}
+
 
 pub struct TableBuilder<RowData: Data, TableData: Data> {
     table_columns: Vec<TableColumn<RowData, Box<dyn CellDelegate<RowData>>>>,
@@ -79,7 +77,7 @@ impl<RowData: Data, TableData: IndexedData<Item = RowData, Idx = LogIdx>>
                 TextCell::new().text_color(theme::TEXT_COLOR),
             )),
             table_config: TableConfig::new(),
-            phantom_td: PhantomData::default(),
+            phantom_td: PhantomData,
             show_headings: ShowHeadings::Both,
             measurements: AxisPair::new(
                 AxisMeasurementType::Individual,

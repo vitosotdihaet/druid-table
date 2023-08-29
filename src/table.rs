@@ -12,7 +12,7 @@ use druid::widget::{
 };
 use druid::{
     BoxConstraints, Data, Env, Event, EventCtx, LayoutCtx, Lens, LifeCycle, LifeCycleCtx, PaintCtx,
-    Size, UpdateCtx, Widget, WidgetExt, WidgetId, WidgetPod,
+    Size, UpdateCtx, Widget, WidgetExt, WidgetId, WidgetPod, Point,
 };
 use druid_bindings::*;
 
@@ -185,16 +185,16 @@ impl CellDemap for AxisPair<Remap> {
 }
 
 struct TableChild<TableData: Data> {
-    ids: Ids,
+    _ids: Ids,
     pod: WidgetPod<TableState<TableData>, Box<dyn Widget<TableState<TableData>>>>,
 }
 
 impl<TableData: Data> TableChild<TableData> {
     pub fn new(
-        ids: Ids,
+        _ids: Ids,
         pod: WidgetPod<TableState<TableData>, Box<dyn Widget<TableState<TableData>>>>,
     ) -> Self {
-        TableChild { pod, ids }
+        TableChild { _ids, pod }
     }
 }
 
@@ -411,16 +411,14 @@ impl<Args: TableArgsT + 'static> Widget<TableState<Args::TableData>> for Table<A
         data: &TableState<Args::TableData>,
         env: &Env,
     ) -> Size {
-        let size = if let Some(child) = self.child.as_mut() {
-            let size = child.pod.layout(ctx, bc, data, env);
-            // child
-            //     .pod
-            //     .set_layout_rect(ctx, data, env, Rect::from_origin_size(Point::ORIGIN, size));
-            size
+        if let Some(child) = self.child.as_mut() {
+            child
+                .pod
+                .set_origin(ctx, Point::ORIGIN);
+            child.pod.layout(ctx, bc, data, env)
         } else {
             bc.max()
-        };
-        size
+        }
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &TableState<Args::TableData>, env: &Env) {

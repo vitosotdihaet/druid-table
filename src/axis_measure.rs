@@ -280,8 +280,7 @@ impl AxisMeasure {
 
     pub(crate) fn far_pixel_from_vis(&self, idx: VisIdx) -> Option<f64> {
         self.first_pixel_from_vis(idx)
-            .map(|p| self.pixels_length_for_vis(idx).map(|l| p + l))
-            .flatten()
+            .and_then(|p| self.pixels_length_for_vis(idx).map(|l| p + l))
     }
 }
 

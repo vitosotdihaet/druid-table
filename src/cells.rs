@@ -75,7 +75,7 @@ impl<RowData: Data> Editing<RowData> {
     ) {
         self.stop_editing(data);
         let mut me = make_editor;
-        let cell_ctx = CellCtx::Cell(&cell);
+        let cell_ctx = CellCtx::Cell(cell);
         if let Some(editor) = me(&cell_ctx) {
             let pod = WidgetPod::new(editor);
 
@@ -130,7 +130,7 @@ where
             cell_delegate: cells_delegate,
             editing: Inactive,
             dragging_selection: false,
-            phantom_td: PhantomData::default(),
+            phantom_td: PhantomData,
         }
     }
 
@@ -244,7 +244,7 @@ where
         let selected = data.selection.get_drawable_selections(cell_rect);
 
         let sel_color = &rtc.selection_color;
-        let sel_fill = &sel_color.clone().with_alpha(0.2);
+        let sel_fill = &(*sel_color).with_alpha(0.2);
 
         for range_rect in &selected.ranges {
             if let Some(range_draw_rect) = range_rect.to_pixel_rect(&data.measures) {
@@ -312,29 +312,27 @@ where
                     if let Some(cell) = self.find_cell(data, &me.pos) {
                         if self.editing.is_editing(&cell) {
                             self.editing.handle_event(ctx, event, &mut data.data, env);
-                        } else {
-                            if me.count == 1 {
-                                if me.mods.meta() || me.mods.ctrl() {
-                                    new_selection = data.selection.add_selection(cell.into());
-                                } else if me.mods.shift() {
-                                    new_selection = data.selection.move_extent(cell.into());
-                                } else {
-                                    new_selection = Some(cell.into());
-                                }
-
-                                ctx.set_handled();
-                                self.editing.stop_editing(&mut data.data);
-                                self.dragging_selection = true;
-                                ctx.set_active(true);
-                            } else if me.count == 2 {
-                                let cd = &mut self.cell_delegate;
-                                self.editing.start_editing(
-                                    ctx,
-                                    &mut data.data,
-                                    &cell,
-                                    |cell_ctx| cd.make_editor(cell_ctx),
-                                );
+                        } else if me.count == 1 {
+                            if me.mods.meta() || me.mods.ctrl() {
+                                new_selection = data.selection.add_selection(cell.into());
+                            } else if me.mods.shift() {
+                                new_selection = data.selection.move_extent(cell.into());
+                            } else {
+                                new_selection = Some(cell.into());
                             }
+
+                            ctx.set_handled();
+                            self.editing.stop_editing(&mut data.data);
+                            self.dragging_selection = true;
+                            ctx.set_active(true);
+                        } else if me.count == 2 {
+                            let cd = &mut self.cell_delegate;
+                            self.editing.start_editing(
+                                ctx,
+                                &mut data.data,
+                                &cell,
+                                |cell_ctx| cd.make_editor(cell_ctx),
+                            );
                         }
                     }
                 }
@@ -348,7 +346,7 @@ where
                     ctx.set_active(false);
                 }
                 Event::Command(cmd) => {
-                    if let Some(_) = cmd.get(INIT_CELLS) {
+                    if cmd.get(INIT_CELLS).is_some() {
                         data.remap_specs[TableAxis::Rows] = self.cell_delegate.initial_spec();
                         remap_changed[TableAxis::Rows] = true;
                         remap_changed[TableAxis::Columns] = true;
@@ -539,7 +537,7 @@ where
                     // );
                     let origin = data
                         .measures
-                        .zip_with(&vis, |m, v| m.first_pixel_from_vis(*v))
+                        .zip_with(vis, |m, v| m.first_pixel_from_vis(*v))
                         .opt()?
                         .point();
                     // data.data.with(single_cell.log.row, |row| {
@@ -553,8 +551,8 @@ where
             _ => (),
         }
         let measured = self.measured_size(&data.measures);
-        let size = bc.constrain(measured);
-        size
+        
+        bc.constrain(measured)
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &TableState<TableData>, env: &Env) {

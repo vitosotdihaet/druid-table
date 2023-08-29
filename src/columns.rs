@@ -130,8 +130,8 @@ impl<T, U, W, I> Wrapped<T, U, W, I> {
         Wrapped {
             inner,
             wrapper,
-            phantom_u: PhantomData::default(),
-            phantom_t: PhantomData::default(),
+            phantom_u: PhantomData,
+            phantom_t: PhantomData,
         }
     }
 }
@@ -270,7 +270,7 @@ impl TextCell {
     fn resolve_font(&self, ctx: &mut PaintCtx, env: &Env) -> FontFamily {
         let font: FontFamily = ctx
             .text()
-            .font_family(&*self.font_name.resolve(env))
+            .font_family(&self.font_name.resolve(env))
             .unwrap(); // TODO errors / fallback
         font
     }
@@ -307,7 +307,7 @@ impl CellRender<String> for TextCell {
 
     fn paint(&self, ctx: &mut PaintCtx, _cell: &CellCtx, data: &String, env: &Env) {
         if let Some(font) = &self.cached_font {
-            self.paint_impl(ctx, &data, env, font);
+            self.paint_impl(ctx, data, env, font);
         } else {
             log::warn!("Font not cached, are you missing a call to init");
             let font = self.resolve_font(ctx, env);
@@ -316,7 +316,7 @@ impl CellRender<String> for TextCell {
                 &Color::rgb8(0xff, 0, 0),
                 2.,
             );
-            self.paint_impl(ctx, &data, env, &font);
+            self.paint_impl(ctx, data, env, &font);
         }
     }
 }
@@ -481,7 +481,7 @@ impl<T: Data, CD: CellDelegate<T>> TableColumn<T, CD> {
             sort_fixed: false,
             sort_dir: None,
             width: Default::default(),
-            phantom_: PhantomData::default(),
+            phantom_: PhantomData,
         }
     }
 
@@ -569,10 +569,9 @@ where
         // Then add the ones which have a
         for (idx, dir) in in_order
             .into_iter()
-            .map(|(idx, c)| c.sort_dir.as_ref().map(|c| (idx, c)))
-            .flatten()
+            .filter_map(|(idx, c)| c.sort_dir.as_ref().map(|c| (idx, c)))
         {
-            spec.add_sort(SortSpec::new(idx, dir.clone()))
+            spec.add_sort(SortSpec::new(idx, *dir))
         }
         spec
     }

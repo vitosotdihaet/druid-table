@@ -298,9 +298,9 @@ impl<Value: HasInterp> InterpNode<Value> {
                 }
             });
 
-            let ret = InterpNode { selected, focused };
+            
 
-            ret
+            InterpNode { selected, focused }
         }
     }
 }
@@ -840,9 +840,9 @@ impl Interp for StringInterp {
         let r_len = self.remove.len() as isize;
         let step = step - r_len;
         if step > 0 {
-            *val = format!("{}{}", self.prefix, &self.add[..(step as usize)]).into()
+            *val = format!("{}{}", self.prefix, &self.add[..(step as usize)])
         } else if step < 0 {
-            *val = format!("{}{}", self.prefix, &self.remove[..(-step) as usize]).into()
+            *val = format!("{}{}", self.prefix, &self.remove[..(-step) as usize])
         } else {
             *val = self.prefix.clone()
         }
@@ -861,7 +861,7 @@ impl Interp for StringInterp {
         true
     }
 
-    fn select_animation_segment(self, idx: AnimationId) -> Result<Self, Self> {
+    fn select_animation_segment(self, _idx: AnimationId) -> Result<Self, Self> {
         Err(self)
     }
 
@@ -875,6 +875,7 @@ impl Interp for StringInterp {
 }
 
 #[derive(Debug)]
+#[derive(Default)]
 pub enum ColorInterp {
     Rgba(
         InterpNode<f64>,
@@ -882,14 +883,11 @@ pub enum ColorInterp {
         InterpNode<f64>,
         InterpNode<f64>,
     ),
+    #[default]
     Noop,
 }
 
-impl Default for ColorInterp {
-    fn default() -> Self {
-        ColorInterp::Noop
-    }
-}
+
 
 impl HasInterp for Color {
     type Interp = ColorInterp;
@@ -957,11 +955,8 @@ impl Interp for ColorInterp {
 mod test {
     use super::*;
     use druid_widget_nursery::animation::AnimationEvent::Ended;
-    use druid_widget_nursery::animation::{Animator, AnimationEvent, AnimationId};
+    use druid_widget_nursery::animation::{Animator, AnimationId};
     use crate::interp::InterpHolder::*;
-    use crate::vis::{MarkInterp, MarkShapeInterp, TextMarkInterp};
-    use crate::{Mark, VisMarks};
-    use std::mem::size_of;
     use std::time::Duration;
     use std::num::NonZeroU32;
 
@@ -1052,7 +1047,6 @@ mod test {
 
     #[test]
     fn test_merge_selected_overlap() {
-        simple_logger::init();
         let mut animator: Animator = Default::default();
 
         let ai_0 = animator.new_animation().duration(Duration::from_nanos(100)).id();
@@ -1084,7 +1078,7 @@ mod test {
                                         x:
                                             InterpNode {
                                                 selected: sa,
-                                                focused: Noop,
+                                                focused: _noop,
                                             },
                                         y: InterpNode { focused: None, .. },
                                     })),
@@ -1097,14 +1091,14 @@ mod test {
                 [(ai_0_ex, _), (ai_1_ex, _)] if ai_0_ex == ai_0 && ai_1_ex == ai_1 => true,
                 _ => false,
             },
-            ex => false,
+            _ex => false,
         }) {
             panic!("{}", str)
         }
     }
 
     //#[test]
-    fn test_merge_descend() {
+    fn _test_merge_descend() {
         let mut animator: Animator = Default::default();
 
         let mut line_tw = |v: f64| {
@@ -1114,8 +1108,8 @@ mod test {
         };
 
         // These ones have the exact same structure, so should be in a select many
-        let mut root_0: InterpNode<Line> = line_tw(1.);
-        let mut root_1: InterpNode<Line> = line_tw(2.);
+        let root_0: InterpNode<Line> = line_tw(1.);
+        let root_1: InterpNode<Line> = line_tw(2.);
 
         let merged = root_0.merge(root_1);
 
@@ -1129,8 +1123,8 @@ mod test {
                                     Some(Interp(PointInterp {
                                         x:
                                             InterpNode {
-                                                selected: sa,
-                                                focused: Noop,
+                                                selected: _sa,
+                                                focused: _noop,
                                             },
                                         y: InterpNode { focused: None, .. },
                                     })),
@@ -1145,7 +1139,7 @@ mod test {
 
         let mut root_0: InterpNode<Line> = line_tw(1.);
         root_0.get().p0.get().x = Default::default();
-        let mut root_1: InterpNode<Line> = line_tw(2.);
+        let root_1: InterpNode<Line> = line_tw(2.);
         let merged = root_0.merge(root_1);
 
         match merged {
@@ -1158,7 +1152,7 @@ mod test {
                                     Some(Interp(PointInterp {
                                         x:
                                             InterpNode {
-                                                selected: sa,
+                                                selected: _sa,
                                                 focused: None,
                                             },
                                         y: InterpNode { focused: None, .. },
@@ -1176,10 +1170,10 @@ mod test {
     #[test]
     fn test_select_internal() {
         let mut p1: InterpNode<Point> = Default::default();
-        p1.get().x = 1.0.tween(6.7);
+        p1.get().x = 1.0.tween(7.);
         let id = AnimationId::new(900, NonZeroU32::new(6534).unwrap());
         let p_sel = p1.select_anim(id);
-        let (res, rem) = select_internal::<Point>(p_sel.selected);
+        let (res, _rem) = select_internal::<Point>(p_sel.selected);
 
         let matched = match res {
             Some(Interp(PointInterp {
@@ -1191,7 +1185,7 @@ mod test {
                 y: InterpNode { focused: None, .. },
             })) => match &ids[..] {
                 [(
-                    found_id,
+                    _found_id,
                     Interp(F64Interp {
                         start: 1.0,
                         end: 6.7,

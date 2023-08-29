@@ -134,7 +134,7 @@ trait AxisPairMove<O> {
 
 impl<O, T: Add<O, Output = T> + Copy + Debug + Default> AxisPairMove<O> for AxisPair<T> {
     fn move_by(&self, axis: TableAxis, amount: O) -> AxisPair<T> {
-        let mut moved = (*self).clone();
+        let mut moved = *self;
         moved[axis] = self[axis] + amount;
         moved
     }
@@ -273,11 +273,10 @@ pub trait CellDemap {
 
     fn get_log_cell(&self, vis: &AxisPair<VisIdx>) -> Option<AxisPair<LogIdx>> {
         self.get_log_idx(TableAxis::Rows, &vis.row)
-            .map(|row| {
+            .and_then(|row| {
                 self.get_log_idx(TableAxis::Columns, &vis.col)
                     .map(|col| AxisPair::new(row, col))
             })
-            .flatten()
     }
 }
 
@@ -339,7 +338,7 @@ impl TableSelection {
                 let new_vis = range.focus.vis.move_by(*axis, amount);
                 cell_demap.get_log_cell(&new_vis).map(|log| {
                     Self::SingleSlice(SingleSlice::new(
-                        axis.clone(),
+                        *axis,
                         SingleCell::new(new_vis, log),
                     ))
                 })
@@ -348,7 +347,9 @@ impl TableSelection {
     }
 
     pub fn move_extent(&self, sel: TableSelection) -> Option<TableSelection> {
-        let res = match (self, &sel) {
+        
+        //log::info!("Move extent: \ncur :\n{:?}  \nextent:\n{:?} \nresult:\n{:?}", self, sel, res);
+        match (self, &sel) {
             (Self::SingleCell(cur), Self::SingleCell(ext)) => {
                 Some(Self::CellRange(CellRange::new(cur.clone(), ext.clone())))
             }
@@ -356,9 +357,7 @@ impl TableSelection {
                 Some(Self::CellRange(CellRange::new(focus.clone(), ext.clone())))
             }
             _ => None,
-        };
-        //log::info!("Move extent: \ncur :\n{:?}  \nextent:\n{:?} \nresult:\n{:?}", self, sel, res);
-        res
+        }
     }
 
     pub fn extend_in_axis(&mut self, axis: TableAxis, vis: VisIdx, cell_demap: &impl CellDemap) {
@@ -367,7 +366,7 @@ impl TableSelection {
 
             if let Some(log_addr) = cell_demap.get_log_cell(&vis_addr) {
                 *self = TableSelection::SliceRange(SliceRange {
-                    axis: axis.clone(),
+                    axis,
                     range: CellRange::new(focus.clone(), SingleCell::new(vis_addr, log_addr)),
                 })
             }
@@ -393,15 +392,14 @@ impl TableSelection {
     ) -> Option<TableSelection> {
         // TODO: handle width of ranges and extend all of the cross axis that is covered
         self.vis_focus()
-            .map(|vis_focus| {
+            .and_then(|vis_focus| {
                 cell_demap.get_log_cell(vis_focus).map(|log_focus| {
                     TableSelection::SingleSlice(SingleSlice::new(
                         *axis,
-                        SingleCell::new(vis_focus.clone(), log_focus),
+                        SingleCell::new(*vis_focus, log_focus),
                     ))
                 })
             })
-            .flatten()
     }
 
     pub fn add_selection(&self, sel: TableSelection) -> Option<TableSelection> {
@@ -472,13 +470,13 @@ impl TableSelection {
     pub fn get_drawable_selections(&self, bounding: &CellRect) -> DrawableSelections {
         match &self {
             TableSelection::SingleCell(sc) if bounding.contains_cell(&sc.vis) => {
-                DrawableSelections::new(Some(sc.vis.clone()), Default::default())
+                DrawableSelections::new(Some(sc.vis), Default::default())
             }
             TableSelection::SingleSlice(sl)
                 if bounding.contains_idx(sl.axis, sl.focus.vis[sl.axis]) =>
             {
                 DrawableSelections::new(
-                    Some(sl.focus.vis.clone()),
+                    Some(sl.focus.vis),
                     vec![sl.to_cell_rect(bounding.range(sl.axis.cross_axis()))],
                 )
             }
