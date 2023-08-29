@@ -35,10 +35,7 @@ enum Editing<RowData> {
 
 impl<RowData: Data> Editing<RowData> {
     fn is_active(&self) -> bool {
-        match self {
-            Inactive => false,
-            _ => true,
-        }
+        !matches!(self, Inactive)
     }
 
     fn is_editing(&self, cell: &SingleCell) -> bool {
@@ -55,14 +52,11 @@ impl<RowData: Data> Editing<RowData> {
         data: &mut TableData,
         env: &Env,
     ) {
-        match self {
-            Editing::Cell {
+        if let Editing::Cell {
                 ref single_cell,
                 ref mut child,
-            } => {
-                data.with_mut(single_cell.log.row, |row| child.event(ctx, event, row, env));
-            }
-            _ => {}
+        } = self {
+            data.with_mut(single_cell.log.row, |row| child.event(ctx, event, row, env));
         }
     }
 
@@ -269,19 +263,16 @@ where
         data: &TableState<TableData>,
         env: &Env,
     ) -> Option<()> {
-        match &mut self.editing {
-            Editing::Cell { single_cell, child } => {
-                let vis = &single_cell.vis;
-                // TODO: excessive unwrapping
-                let rect = CellRect::point(vis.row, vis.col).to_pixel_rect(&data.measures)?;
+        if let Editing::Cell { single_cell, child } = &mut self.editing {
+            let vis = &single_cell.vis;
+            // TODO: excessive unwrapping
+            let rect = CellRect::point(vis.row, vis.col).to_pixel_rect(&data.measures)?;
 
-                ctx.with_save(|ctx| {
-                    ctx.render_ctx.clip(rect);
-                    data.data
-                        .with(single_cell.log.row, |row| child.paint(ctx, row, env));
-                });
-            }
-            _ => (),
+            ctx.with_save(|ctx| {
+                ctx.render_ctx.clip(rect);
+                data.data
+                    .with(single_cell.log.row, |row| child.paint(ctx, row, env));
+            });
         }
         Some(())
     }
@@ -354,13 +345,10 @@ where
                         log::info!("Remap changed:{:?}", ax);
                         remap_changed[*ax] = true;
                     } else {
-                        match &mut self.editing {
-                            Editing::Cell { single_cell, child } => {
-                                data.data.with_mut(single_cell.log.row, |row| {
-                                    child.event(ctx, event, row, env)
-                                });
-                            }
-                            _ => (),
+                        if let Editing::Cell { single_cell, child } = &mut self.editing {
+                            data.data.with_mut(single_cell.log.row, |row| {
+                                child.event(ctx, event, row, env)
+                            });
                         }
                     }
                 }

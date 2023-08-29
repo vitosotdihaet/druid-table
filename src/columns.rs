@@ -428,16 +428,16 @@ impl<T: Data, CD: CellDelegate<T>> Debug for TableColumn<T, CD> {
 
 pub struct TableColumnWidth {
     initial: Option<KeyOrValue<f64>>,
-    min: Option<KeyOrValue<f64>>,
-    max: Option<KeyOrValue<f64>>,
+    _min: Option<KeyOrValue<f64>>,
+    _max: Option<KeyOrValue<f64>>,
 }
 
 impl Default for TableColumnWidth {
     fn default() -> Self {
         TableColumnWidth {
             initial: Some(50.0.into()), // Could be in a 'theme' I guess.
-            min: Some(20.0.into()),
-            max: None,
+            _min: Some(20.0.into()),
+            _max: None,
         }
     }
 }
@@ -459,8 +459,8 @@ where
     fn from((initial, min, max): (T1, T2, T3)) -> Self {
         TableColumnWidth {
             initial: Some(initial.into()),
-            min: Some(min.into()),
-            max: Some(max.into()),
+            _min: Some(min.into()),
+            _max: Some(max.into()),
         }
     }
 }
