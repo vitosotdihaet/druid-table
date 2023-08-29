@@ -344,12 +344,10 @@ where
                     } else if let Some(ax) = cmd.get(REMAP_CHANGED) {
                         log::info!("Remap changed:{:?}", ax);
                         remap_changed[*ax] = true;
-                    } else {
-                        if let Editing::Cell { single_cell, child } = &mut self.editing {
-                            data.data.with_mut(single_cell.log.row, |row| {
-                                child.event(ctx, event, row, env)
-                            });
-                        }
+                    } else if let Editing::Cell { single_cell, child } = &mut self.editing {
+                        data.data.with_mut(single_cell.log.row, |row| {
+                            child.event(ctx, event, row, env)
+                        });
                     }
                 }
                 Event::KeyDown(ke) if !self.editing.is_active() => {
@@ -406,12 +404,9 @@ where
                         k => log::info!("Key {:?}", k),
                     }
                 }
-                _ => match &mut self.editing {
-                    Editing::Cell { single_cell, child } => {
-                        data.data
-                            .with_mut(single_cell.log.row, |row| child.event(ctx, event, row, env));
-                    }
-                    _ => (),
+                _ => if let Editing::Cell { single_cell, child } = &mut self.editing {
+                    data.data
+                        .with_mut(single_cell.log.row, |row| child.event(ctx, event, row, env));
                 },
             }
 
@@ -460,14 +455,11 @@ where
             self.resolved_config = Some(self.config.resolve(env));
             ctx.submit_command(Command::new(INIT_CELLS, (), ctx.widget_id()));
         } else {
-            match &mut self.editing {
-                Editing::Cell { single_cell, child } => {
-                    log::info!("LC event {:?}", event);
-                    data.data.with(single_cell.log.row, |row| {
-                        child.lifecycle(ctx, event, row, env)
-                    });
-                }
-                _ => (),
+            if let Editing::Cell { single_cell, child } = &mut self.editing {
+                log::info!("LC event {:?}", event);
+                data.data.with(single_cell.log.row, |row| {
+                    child.lifecycle(ctx, event, row, env)
+                });
             }
         }
     }
@@ -513,30 +505,27 @@ where
     ) -> Size {
         bc.debug_check("TableCells");
 
-        match &mut self.editing {
-            Editing::Cell { single_cell, child } => {
-                let vis = &single_cell.vis;
-                (|| -> Option<_> {
-                    // let bc = BoxConstraints::tight(
-                    //     data.measures
-                    //         .zip_with(&vis, |m, v| m.pixels_length_for_vis(*v))
-                    //         .opt()?
-                    //         .size(),
-                    // );
-                    let origin = data
-                        .measures
-                        .zip_with(vis, |m, v| m.first_pixel_from_vis(*v))
-                        .opt()?
-                        .point();
-                    // data.data.with(single_cell.log.row, |row| {
-                        // let size = child.layout(ctx, &bc, row, env);
-                        // child.set_layout_rect(ctx, row, env, Rect::from_origin_size(origin, size))
-                        child.set_origin(ctx, origin);
-                    // });
-                    Some(())
-                })();
-            }
-            _ => (),
+        if let Editing::Cell { single_cell, child } = &mut self.editing {
+            let vis = &single_cell.vis;
+            (|| -> Option<_> {
+                // let bc = BoxConstraints::tight(
+                //     data.measures
+                //         .zip_with(&vis, |m, v| m.pixels_length_for_vis(*v))
+                //         .opt()?
+                //         .size(),
+                // );
+                let origin = data
+                    .measures
+                    .zip_with(vis, |m, v| m.first_pixel_from_vis(*v))
+                    .opt()?
+                    .point();
+                // data.data.with(single_cell.log.row, |row| {
+                    // let size = child.layout(ctx, &bc, row, env);
+                    // child.set_layout_rect(ctx, row, env, Rect::from_origin_size(origin, size))
+                    child.set_origin(ctx, origin);
+                // });
+                Some(())
+            })();
         }
         let measured = self.measured_size(&data.measures);
         

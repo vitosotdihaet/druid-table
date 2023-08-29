@@ -237,7 +237,7 @@ impl<Value: HasInterp> InterpNode<Value> {
     pub fn interp(&mut self, ctx: &AnimationCtx, val: &mut Value) -> InterpResult {
         let mut first = true;
         for (idx, interp) in &mut self.selected {
-            ctx.with_animation_full(*idx, false, |ctx| {
+            let _ = ctx.with_animation_full(*idx, false, |ctx| {
                 if ctx.status() != AnimationStatus::NotRunning {
                     first = false;
                     interp.interp(ctx, val)

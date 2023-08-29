@@ -408,11 +408,7 @@ impl TableSelection {
     }
 
     pub fn has_focus(&self) -> bool {
-        if let Self::NoSelection = self {
-            false
-        } else {
-            true
-        }
+        !matches!(self, Self::NoSelection)
     }
 
     pub fn focus(&self) -> Option<&SingleCell> {

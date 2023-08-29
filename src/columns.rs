@@ -444,9 +444,7 @@ impl Default for TableColumnWidth {
 
 impl From<f64> for TableColumnWidth {
     fn from(num: f64) -> Self {
-        let mut tc = TableColumnWidth::default();
-        tc.initial = Some(num.into());
-        tc
+        TableColumnWidth { initial: Some(num.into()), ..Default::default() }
     }
 }
 

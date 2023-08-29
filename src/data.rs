@@ -92,11 +92,7 @@ impl Remap {
     }
 
     pub fn is_pristine(&self) -> bool {
-        if let Remap::Pristine = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Remap::Pristine)
     }
 
     pub fn max_vis_idx(&self, len: usize) -> VisIdx {
