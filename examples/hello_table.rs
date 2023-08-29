@@ -10,13 +10,13 @@ use druid::kurbo::CircleSegment;
 use druid::theme::PLACEHOLDER_COLOR;
 use druid::widget::{
     Button, Checkbox, CrossAxisAlignment, Flex, Label, MainAxisAlignment, Padding, RadioGroup,
-    SizedBox, Stepper, ViewSwitcher,
+    SizedBox, Stepper, ViewSwitcher, Container,
 };
 use druid::{
     AppLauncher, Data, Env, KeyOrValue, Lens, LensExt, LocalizedString, PaintCtx, Point,
     RenderContext, Widget, WidgetExt, WindowDesc,
 };
-use druid::{Color, Value};
+use druid::Color;
 use std::cmp::Ordering;
 use std::f64::consts::PI;
 
@@ -130,7 +130,7 @@ fn build_main_widget() -> impl Widget<HelloState> {
     let headings_control = Flex::column()
         .cross_axis_alignment(CrossAxisAlignment::Start)
         .with_child(decor(Label::new("Headings to show")))
-        .with_child(RadioGroup::new(vec![
+        .with_child(RadioGroup::column(vec![
             ("Just cells", ShowHeadings::JustCells),
             ("Column headings", ShowHeadings::One(TableAxis::Columns)),
             ("Row headings", ShowHeadings::One(TableAxis::Rows)),
@@ -185,7 +185,7 @@ fn decor<T: Data>(label: Label<T>) -> SizedBox<T> {
         .expand_width()
 }
 
-fn group<T: Data, W: Widget<T> + 'static>(w: W) -> Padding<T> {
+fn group<T: Data, W: Widget<T> + 'static>(w: W) -> Padding<T, Container<T>> {
     w.border(Color::WHITE, 0.5).padding(5.)
 }
 
@@ -246,7 +246,7 @@ fn build_table(settings: Settings) -> impl Widget<Vector<HelloRow>> {
 
 pub fn main() {
     // describe the main window
-    let main_window = WindowDesc::new(build_main_widget)
+    let main_window = WindowDesc::new(build_main_widget())
         .title(WINDOW_TITLE)
         .window_size((800.0, 500.0));
 
@@ -273,7 +273,7 @@ pub fn main() {
 
     // start the application
     AppLauncher::with_window(main_window)
-        .use_simple_logger()
+        .log_to_console()
         .launch(initial_state)
         .expect("Failed to launch application");
 }

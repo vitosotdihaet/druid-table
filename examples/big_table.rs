@@ -1,6 +1,6 @@
 use druid_table::{
     AxisMeasure, AxisMeasurementType, AxisPair, CellCtx, CellRender, CellRenderExt, CellsDelegate,
-    EditorFactory, FixedAxisMeasure, HeaderBuild, HeadersFromIndices, IndexedData, IndexedItems,
+    EditorFactory, HeaderBuild, HeadersFromIndices, IndexedData, IndexedItems,
     LogIdx, Remap, RemapSpec, Remapper, SuppliedHeaders, Table, TableArgs, TableConfig, TextCell,
 };
 
@@ -147,12 +147,10 @@ fn build_root_widget() -> impl Widget<LogIdxTable> {
 }
 
 pub fn main() {
-    simple_logger::init().unwrap();
-
     info!("Hello table");
 
     // describe the main window
-    let main_window = WindowDesc::new(build_root_widget)
+    let main_window = WindowDesc::new(build_root_widget())
         .title("Big table")
         .window_size((400.0, 700.0));
 

@@ -523,7 +523,7 @@ where
         ctx: &mut LayoutCtx,
         bc: &BoxConstraints,
         data: &TableState<TableData>,
-        env: &Env,
+        _env: &Env,
     ) -> Size {
         bc.debug_check("TableCells");
 
@@ -531,21 +531,22 @@ where
             Editing::Cell { single_cell, child } => {
                 let vis = &single_cell.vis;
                 (|| -> Option<_> {
-                    let bc = BoxConstraints::tight(
-                        data.measures
-                            .zip_with(&vis, |m, v| m.pixels_length_for_vis(*v))
-                            .opt()?
-                            .size(),
-                    );
+                    // let bc = BoxConstraints::tight(
+                    //     data.measures
+                    //         .zip_with(&vis, |m, v| m.pixels_length_for_vis(*v))
+                    //         .opt()?
+                    //         .size(),
+                    // );
                     let origin = data
                         .measures
                         .zip_with(&vis, |m, v| m.first_pixel_from_vis(*v))
                         .opt()?
                         .point();
-                    data.data.with(single_cell.log.row, |row| {
-                        let size = child.layout(ctx, &bc, row, env);
-                        child.set_layout_rect(ctx, row, env, Rect::from_origin_size(origin, size))
-                    });
+                    // data.data.with(single_cell.log.row, |row| {
+                        // let size = child.layout(ctx, &bc, row, env);
+                        // child.set_layout_rect(ctx, row, env, Rect::from_origin_size(origin, size))
+                        child.set_origin(ctx, origin);
+                    // });
                     Some(())
                 })();
             }

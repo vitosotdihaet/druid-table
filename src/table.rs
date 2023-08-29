@@ -12,7 +12,7 @@ use druid::widget::{
 };
 use druid::{
     BoxConstraints, Data, Env, Event, EventCtx, LayoutCtx, Lens, LifeCycle, LifeCycleCtx, PaintCtx,
-    Point, Rect, Size, UpdateCtx, Widget, WidgetExt, WidgetId, WidgetPod,
+    Size, UpdateCtx, Widget, WidgetExt, WidgetId, WidgetPod,
 };
 use druid_bindings::*;
 
@@ -413,9 +413,9 @@ impl<Args: TableArgsT + 'static> Widget<TableState<Args::TableData>> for Table<A
     ) -> Size {
         let size = if let Some(child) = self.child.as_mut() {
             let size = child.pod.layout(ctx, bc, data, env);
-            child
-                .pod
-                .set_layout_rect(ctx, data, env, Rect::from_origin_size(Point::ORIGIN, size));
+            // child
+            //     .pod
+            //     .set_layout_rect(ctx, data, env, Rect::from_origin_size(Point::ORIGIN, size));
             size
         } else {
             bc.max()

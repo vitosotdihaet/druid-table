@@ -1,4 +1,5 @@
-use druid_widget_nursery::animation::{SimpleCurve, AnimationEventName};
+use druid_widget_nursery::animation::{AnimationCurve, AnimationEventName};
+
 use crate::LogIdx;
 use druid::kurbo::{Affine, Line, ParamCurveNearest, Point, Rect, Size, Vec2};
 use druid::piet::{FontFamily, Text, TextLayout, TextLayoutBuilder};
@@ -16,11 +17,10 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 use std::time::Duration;
 
-use druid_widget_nursery::animation::{AnimationCtx, AnimationEvent, AnimationId, Animator};
+use druid_widget_nursery::animation::{AnimationCtx, AnimationId, Animator};
 use crate::interp::{
     EnterExit, HasInterp, Interp, InterpCoverage, InterpError, InterpNode, InterpResult, OK,
 };
-use druid_widget_nursery::animation::AnimationEvent::Named;
 
 #[derive(Debug, Default)]
 pub struct TextMarkInterp {
@@ -367,8 +367,8 @@ impl Mark {
         match self.shape {
             MarkShape::Rect(r) => r.contains(pos),
             MarkShape::Line(l) => {
-                let (_, d2) = l.nearest(pos, 1.0);
-                d2 < 1.0
+                let near = l.nearest(pos, 1.0);
+                near.t < 1.0
             }
             _ => false,
         }
@@ -723,7 +723,7 @@ impl<V: Visualization> Vis<V> {
                 .animator
                 .new_animation()
                 .duration(Duration::from_millis(1000))
-                .curve(SimpleCurve::Linear)
+                .curve(AnimationCurve::EASE_IN)
                 .id();
 
             let selected = interp.select_anim(id);
@@ -804,7 +804,7 @@ impl<V: Visualization> Widget<V::Input> for Vis<V> {
                                 .animator
                                 .new_animation()
                                 .duration(Duration::from_millis(2500))
-                                .curve(SimpleCurve::EaseOut)
+                                .curve(AnimationCurve::EASE_OUT)
                                 .after(Self::UNHOVER)
                                 .id();
 
@@ -844,7 +844,7 @@ impl<V: Visualization> Widget<V::Input> for Vis<V> {
                         .animator
                         .new_animation()
                         .duration(Duration::from_secs(3))
-                        .curve(SimpleCurve::OutElastic)
+                        .curve(AnimationCurve::EASE_OUT_ELASTIC)
                         .id();
                     let id = mark.id;
                     let start = inner.current.marks.entry(id).or_insert(mark.enter());
