@@ -130,7 +130,7 @@ fn build_root_widget() -> impl Widget<LogIdxTable> {
 
     let measures = AxisPair::new(
         AxisMeasure::new(AxisMeasurementType::Uniform, 25.),
-        AxisMeasure::new(AxisMeasurementType::Uniform, 100.),
+        AxisMeasure::new(AxisMeasurementType::Uniform, 25.),
     );
     Table::new_in_scope(
         TableArgs::new(
@@ -155,10 +155,11 @@ pub fn main() {
         .window_size((400.0, 700.0));
 
     // create the initial app state
-    let initial_state = LogIdxTable::new(1_000_000_000);
+    let initial_state = LogIdxTable::new(10);
 
     // start the application
     AppLauncher::with_window(main_window)
+        .log_to_console()
         .launch(initial_state)
         .expect("Failed to launch application");
 }

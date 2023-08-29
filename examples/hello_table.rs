@@ -174,7 +174,7 @@ fn build_main_widget() -> impl Widget<HelloState> {
 
     Flex::row()
         .cross_axis_alignment(CrossAxisAlignment::Start)
-        .with_child(sidebar)
+        // .with_child(sidebar)
         .with_flex_child(vs, 1.)
 }
 
