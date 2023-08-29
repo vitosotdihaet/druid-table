@@ -454,13 +454,11 @@ where
         if let LifeCycle::WidgetAdded = event {
             self.resolved_config = Some(self.config.resolve(env));
             ctx.submit_command(Command::new(INIT_CELLS, (), ctx.widget_id()));
-        } else {
-            if let Editing::Cell { single_cell, child } = &mut self.editing {
-                log::info!("LC event {:?}", event);
-                data.data.with(single_cell.log.row, |row| {
-                    child.lifecycle(ctx, event, row, env)
-                });
-            }
+        } else if let Editing::Cell { single_cell, child } = &mut self.editing {
+            log::info!("LC event {:?}", event);
+            data.data.with(single_cell.log.row, |row| {
+                child.lifecycle(ctx, event, row, env)
+            });
         }
     }
 
